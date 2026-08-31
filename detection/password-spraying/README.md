@@ -173,7 +173,7 @@ providing additional evidence of coordinated authentication
 attempts rather than an isolated login failure.
 
 <p align="center">
-  <img src="screenshots/03_attack_timeline.png" alt="Attack timeline analysis" width="900">
+  <img src="screenshots/04_attack_timeline.png" alt="Attack timeline analysis" width="900">
   <br>
   <sub><b>Figure 3.</b> Timeline analysis of the password spraying activity.</sub>
 </p>
@@ -196,7 +196,7 @@ detected password spraying activity resulted in a successful
 login.
 
 <p align="center">
-  <img src="screenshots/04_no_successful_authentication.png" alt="No successful authentication" width="900">
+  <img src="screenshots/03_no_successful_authentication.png" alt="No successful authentication" width="900">
   <br>
   <sub><b>Figure 4.</b> Splunk investigation showing no successful authentication.</sub>
 </p>
@@ -227,7 +227,7 @@ This provides no additional evidence of successful compromise
 within the available telemetry.
 
 <p align="center">
-  <img src="screenshots/05_post_authentication_review.png" alt="Post authentication review" width="900">
+  <img src="screenshots/05_no_post_auth_activity.png" alt="Post authentication review" width="900">
   <br>
   <sub><b>Figure 5.</b> Review of additional Windows security activity.</sub>
 </p>
