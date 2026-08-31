@@ -1,0 +1,86 @@
+# ============================================================
+# Windows Password Spraying Investigation
+# ============================================================
+#
+# SOC L1 Investigation | Splunk | Windows Security Event Logs
+#
+# Investigation Flow:
+# Source IP Analysis
+# -> Targeted Users
+# -> Attack Timeline
+# -> Successful Authentication
+# -> Post-Authentication Activity
+#
+# Suspected Source IP:
+# 91.219.237.15
+#
+# ============================================================
+
+
+# ============================================================
+# 1. Targeted Users Investigation
+# ============================================================
+#
+# Identify the user accounts targeted by the suspected
+# password spraying source IP.
+#
+# Event ID 4625 = Failed Logon
+#
+# ============================================================
+
+index=* signature_id=4625 src_ip="91.219.237.15"
+| stats count as failed_attempts by user
+| sort - failed_attempts
+
+
+# ============================================================
+# 2. Successful Authentication Check
+# ============================================================
+#
+# Check whether the suspected source IP successfully
+# authenticated after the failed logon attempts.
+#
+# Event ID 4624 = Successful Logon
+#
+# ============================================================
+
+index=* signature_id=4624 src_ip="91.219.237.15"
+| table _time user src_ip signature_id logon_type
+| sort _time
+
+
+# ============================================================
+# 3. Attack Timeline Analysis
+# ============================================================
+#
+# Analyze the frequency of failed authentication attempts
+# and identify multiple users targeted within the same
+# time period.
+#
+# ============================================================
+
+index=* signature_id=4625 src_ip="91.219.237.15"
+| bin _time span=5m
+| stats count as failed_attempts dc(user) as unique_users values(user) as targeted_users by _time, src_ip
+| sort _time
+
+
+# ============================================================
+# 4. Post-Authentication Activity Check
+# ============================================================
+#
+# Search for suspicious Windows security activity associated
+# with the suspected source IP.
+#
+# 4672 = Special privileges assigned
+# 4688 = New process created
+# 7045 = New service installed
+# 4657 = Registry value modified
+# 1102 = Audit log cleared
+#
+# ============================================================
+
+index=* src_ip="91.219.237.15"
+| search signature_id=4672 OR signature_id=4688 OR signature_id=7045 OR signature_id=4657 OR signature_id=1102
+| table _time signature_id user src_ip
+| sort _time
