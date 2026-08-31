@@ -1,0 +1,35 @@
+# ============================================================
+# 1. Failed Authentication Investigation
+# ============================================================
+
+index=* signature_id=4625 user="mrodriguez" src_ip="185.220.101.47"
+| stats count as failed_attempts min(_time) as first_attempt max(_time) as last_attempt
+| convert ctime(first_attempt) ctime(last_attempt)
+
+
+# ============================================================
+# 2. Successful Authentication Correlation
+# ============================================================
+
+index=* signature_id=4624 user="mrodriguez" src_ip="185.220.101.47"
+| table _time signature_id user src_ip logon_type
+| sort _time
+
+
+# ============================================================
+# 3. Post-Authentication Activity
+# ============================================================
+
+index=* user="mrodriguez" src_ip="185.220.101.47"
+| search signature_id=4672 OR signature_id=4688 OR signature_id=7045 OR signature_id=4657 OR signature_id=1102
+| table _time signature_id user src_ip logon_type
+| sort _time
+
+
+# ============================================================
+# 4. Source IP and User Analysis
+# ============================================================
+
+index=* signature_id=4625 src_ip="185.220.101.47"
+| stats count as failed_attempts by user
+| sort - failed_attempts
