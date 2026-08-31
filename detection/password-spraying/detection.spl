@@ -1,0 +1,25 @@
+# ============================================================
+# Windows Password Spraying Detection
+# ============================================================
+#
+# SOC L1 Detection | Splunk | Windows Security Event Logs
+#
+# Objective:
+# Detect potential password spraying by identifying
+# one source IP targeting multiple user accounts.
+#
+# Event ID:
+# 4625 - Failed Logon
+#
+# Detection threshold:
+# 5 or more unique users targeted by the same source IP.
+#
+# Password Spraying Pattern:
+# One Source IP -> Multiple Users -> Failed Logons
+#
+# ============================================================
+
+index=* signature_id=4625
+| stats dc(user) as unique_users count as failed_attempts by src_ip
+| where unique_users >= 5
+| sort - unique_users
