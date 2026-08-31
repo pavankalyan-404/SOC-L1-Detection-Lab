@@ -1,5 +1,94 @@
+# ============================================================
+# Windows Password Spraying Detection
+# ============================================================
+#
+# SOC L1 Detection | Splunk | Windows Security Event Logs
+#
+# Objective:
+# Detect potential password spraying activity by identifying
+# a single source IP attempting authentication against
+# multiple user accounts.
+#
+# Password spraying pattern:
+# One source IP -> Multiple users -> Failed logons
+#
+# Event ID:
+# 4625 - Failed logon
+#
+# Detection threshold:
+# 5 or more unique user accounts targeted by the same
+# source IP.
+#
+# ============================================================
+
+
+# 1. Detection Query
+# ------------------------------------------------------------
+
 index=* signature_id=4625
-| bin _time span=5m
-| stats count as failed_attempts by _time, user, src_ip
-| where failed_attempts >= 10
-| sort - failed_attempts
+| stats dc(user) as unique_users count as failed_attempts by src_ip
+| where unique_users >= 5
+| sort - unique_users
+
+
+# ============================================================
+# 2. Query Explanation
+# ============================================================
+#
+# index=* signature_id=4625
+# Searches Windows failed authentication events.
+#
+# stats dc(user) as unique_users
+# Counts the number of unique user accounts targeted by
+# each source IP.
+#
+# count as failed_attempts
+# Counts the total number of failed authentication attempts
+# from each source IP.
+#
+# by src_ip
+# Groups the results by source IP address.
+#
+# where unique_users >= 5
+# Filters for source IPs targeting five or more unique users.
+#
+# sort - unique_users
+# Displays source IPs targeting the largest number of users
+# first.
+#
+# ============================================================
+
+
+# 3. Detection Result
+# ============================================================
+#
+# The detection identified suspicious authentication activity
+# associated with:
+#
+# Source IP: 91.219.237.15
+# Unique users targeted: 15
+# Failed authentication attempts: 30
+# Detection threshold: 5+ unique users
+#
+# Assessment:
+# Potential Windows password spraying activity.
+#
+# ============================================================
+
+
+# 4. SOC L1 Investigation Trigger
+# ============================================================
+#
+# When the detection triggers:
+#
+# - Identify the suspicious source IP.
+# - Identify all targeted user accounts.
+# - Review the number and timing of failed attempts.
+# - Check for successful authentication (Event ID 4624).
+# - Review suspicious activity following authentication.
+# - Determine whether the source IP appears on other systems.
+# - Escalate if additional suspicious activity is identified.
+#
+# ============================================================
+# End of Password Spraying Detection
+# ============================================================
