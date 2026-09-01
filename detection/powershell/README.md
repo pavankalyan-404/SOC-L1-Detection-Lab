@@ -126,7 +126,15 @@ The query identifies PowerShell process creation events
 containing the suspicious indicators listed above.
 
 ---
+## MITRE ATT&CK Mapping
 
+| Technique ID | Technique Name | Why It Applies |
+|---|---|---|
+| T1059.001 | Command and Scripting Interpreter: PowerShell | PowerShell itself is the execution vector under investigation |
+| T1027 | Obfuscated Files or Information | The `-enc` / `-encodedcommand` flags conceal command content from plaintext inspection |
+| T1564.003 | Hide Artifacts: Hidden Window | The `-w hidden` flag suppresses the visible PowerShell window to avoid user detection |
+
+---
 ## Detection Result
 
 The initial detection identified **9 suspicious PowerShell events**
