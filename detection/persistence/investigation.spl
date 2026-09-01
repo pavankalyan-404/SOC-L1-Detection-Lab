@@ -1,0 +1,26 @@
+# Step 1: Isolate the anomalous user's full event chain
+index=persist_case earliest=0
+| search ksharma
+| table _time _raw
+| sort _time
+
+# Step 2: Confirm the parent-child process chain (Word spawning PowerShell)
+index=persist_case earliest=0
+| search ksharma "A new process has been created"
+| table _time _raw
+| sort _time
+
+# Step 3: Identify network connections (C2 beaconing)
+index=persist_case earliest=0
+| search ksharma "Network connection"
+| table _time _raw
+
+# Step 4: Identify dropped file and registry persistence
+index=persist_case earliest=0
+| search ksharma ("File created" OR "Registry value set")
+| table _time _raw
+
+# Step 5: Confirm scheduled task persistence (SYSTEM-level)
+index=persist_case earliest=0
+| search ksharma "schtasks"
+| table _time _raw
