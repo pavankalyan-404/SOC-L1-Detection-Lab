@@ -1,0 +1,27 @@
+# ============================================================
+# Windows Suspicious PowerShell Activity Detection
+# ============================================================
+#
+# SOC L1 Detection | Splunk | Windows Security Event Logs
+#
+# Objective:
+# Detect potentially suspicious PowerShell execution by
+# identifying common indicators of obfuscated or hidden
+# PowerShell activity.
+#
+# Event ID:
+# 4688 - Process Creation
+#
+# Suspicious indicators:
+# - -nop
+# - -w hidden
+# - -enc
+# - -encodedcommand
+# - Compress-Archive
+#
+# ============================================================
+
+index=* signature_id=4688 process_name="powershell.exe"
+| search _raw="*-nop*" OR _raw="*-w hidden*" OR _raw="*-enc*" OR _raw="*-encodedcommand*" OR _raw="*Compress-Archive*"
+| table _time user host process_name _raw
+| sort _time
