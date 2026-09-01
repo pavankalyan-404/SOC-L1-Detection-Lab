@@ -1,0 +1,132 @@
+# ============================================================
+# Windows Suspicious PowerShell Investigation
+# ============================================================
+#
+# SOC L1 Investigation | Splunk | Windows Security Event Logs
+#
+# Investigation Flow:
+# PowerShell Activity
+# -> Suspicious Users
+# -> Suspicious Commands
+# -> Encoded PowerShell
+# -> Parent Process Analysis
+# -> Timeline Analysis
+#
+# ============================================================
+
+
+# ============================================================
+# 1. PowerShell Activity Overview
+# ============================================================
+#
+# Identify PowerShell process creation events and determine
+# which users and hosts executed PowerShell.
+#
+# Event ID 4688 = Process Creation
+#
+# ============================================================
+
+index=* signature_id=4688 process_name="powershell.exe"
+| stats count as powershell_events dc(user) as unique_users values(user) as users values(host) as hosts
+| table powershell_events unique_users users hosts
+
+
+# ============================================================
+# 2. Suspicious PowerShell Activity by User
+# ============================================================
+#
+# Identify users associated with suspicious PowerShell
+# execution patterns.
+#
+# ============================================================
+
+index=* signature_id=4688 process_name="powershell.exe"
+| search _raw="*-nop*" OR _raw="*-w hidden*" OR _raw="*-enc*" OR _raw="*-encodedcommand*" OR _raw="*Compress-Archive*"
+| stats count as suspicious_events by user
+| sort - suspicious_events
+
+
+# ============================================================
+# 3. Suspicious PowerShell Command Analysis
+# ============================================================
+#
+# Review the raw process creation events to identify
+# suspicious PowerShell execution parameters.
+#
+# ============================================================
+
+index=* signature_id=4688 process_name="powershell.exe"
+| search _raw="*-nop*" OR _raw="*-w hidden*" OR _raw="*-enc*" OR _raw="*-encodedcommand*" OR _raw="*Compress-Archive*"
+| table _time user host process_name _raw
+| sort _time
+
+
+# ============================================================
+# 4. Encoded PowerShell Investigation
+# ============================================================
+#
+# Identify PowerShell executions using encoded commands.
+#
+# Encoded commands can make the actual PowerShell payload
+# harder to inspect and may be used for obfuscation.
+#
+# ============================================================
+
+index=* signature_id=4688 process_name="powershell.exe"
+| search _raw="*-enc*" OR _raw="*-encodedcommand*"
+| table _time user host process_name _raw
+| sort _time
+
+
+# ============================================================
+# 5. Parent Process Analysis
+# ============================================================
+#
+# Investigate the process that launched PowerShell.
+#
+# Suspicious parent processes may provide additional context
+# about how PowerShell execution was initiated.
+#
+# ============================================================
+
+index=* signature_id=4688 process_name="powershell.exe"
+| search _raw="*-enc*" OR _raw="*-encodedcommand*"
+| table _time user host ParentImage process_name New_Process_Name CommandLine _raw
+| sort _time
+
+
+# ============================================================
+# 6. PowerShell Timeline Analysis
+# ============================================================
+#
+# Analyze suspicious PowerShell activity chronologically
+# to identify repeated execution patterns.
+#
+# ============================================================
+
+index=* signature_id=4688 process_name="powershell.exe"
+| search _raw="*-nop*" OR _raw="*-w hidden*" OR _raw="*-enc*" OR _raw="*-encodedcommand*" OR _raw="*Compress-Archive*"
+| bin _time span=5m
+| stats count as suspicious_events dc(user) as unique_users values(user) as users by _time
+| sort _time
+
+
+# ============================================================
+# SOC L1 Investigation Outcome
+# ============================================================
+#
+# The investigation should determine:
+#
+# - Which users executed suspicious PowerShell
+# - Which hosts were involved
+# - Whether encoded or hidden execution was observed
+# - Which parent processes launched PowerShell
+# - Whether suspicious activity occurred repeatedly
+#
+# Escalate to SOC L2 when additional evidence indicates
+# malicious execution, persistence, credential access,
+# lateral movement, or other confirmed compromise activity.
+#
+# ============================================================
+# End of PowerShell Investigation
+# ============================================================
