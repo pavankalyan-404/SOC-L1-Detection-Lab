@@ -110,6 +110,12 @@ candidate.
 | **Detection Threshold** | **5+ unique users** |
 | **Initial Assessment** | **Potential Password Spraying** |
 
+## MITRE ATT&CK Mapping
+
+| Technique ID | Technique Name | Why It Applies |
+|---|---|---|
+| T1110.003 | Brute Force: Password Spraying | A single source IP attempted authentication against 15 unique accounts rather than repeatedly attacking one — the defining pattern of password spraying |
+
 <p align="center">
   <img src="screenshots/01_password_spraying_detection.png" alt="Password spraying detection" width="900">
   <br>
