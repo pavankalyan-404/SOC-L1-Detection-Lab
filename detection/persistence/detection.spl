@@ -1,0 +1,4 @@
+index=persist_case earliest=0
+| search ksharma
+| table _time _raw
+| sort _time
