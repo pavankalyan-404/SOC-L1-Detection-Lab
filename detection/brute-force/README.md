@@ -82,6 +82,11 @@ The investigation identified:
 - **Source IP:** `185.220.101.47`
 - **Failed authentication events:** `94`
 
+## MITRE ATT&CK Mapping
+
+| Technique ID | Technique Name | Why It Applies |
+|---|---|---|
+| T1110.001 | Brute Force: Password Guessing | 94 repeated failed authentication attempts against a single account from the same source IP |
 ---
 
 ## 05. Evidence — Brute-Force Detection
