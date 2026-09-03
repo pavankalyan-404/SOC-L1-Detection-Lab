@@ -1,0 +1,204 @@
+# ============================================================
+# Windows Privilege Escalation Investigation
+# ============================================================
+#
+# SOC L1 Investigation | Splunk | Windows Security Event Logs
+#
+# Objective:
+# Investigate suspicious privileged group modification and
+# correlate authentication, privilege assignment, source IP,
+# account activity, and process execution.
+#
+# Primary Account:
+# itsupport3
+#
+# Affected Account:
+# svc_backup
+#
+# Source IP:
+# 10.50.4.22
+#
+# Primary Host:
+# WIN-DC-01
+#
+# ============================================================
+
+
+# ============================================================
+# 01. Initial Privileged Group Modification
+# ============================================================
+#
+# Event ID 4732 indicates that a member was added to a
+# security-enabled local group.
+#
+# Investigation focus:
+# - Identify initiating user
+# - Identify affected account
+# - Identify privileged group
+#
+# Expected result:
+# 1 event
+#
+# ============================================================
+
+index="privilege" signature_id=4732
+| table _time user group_name member_added signature
+| sort _time
+
+
+# ============================================================
+# 02. Investigate itsupport3 Timeline
+# ============================================================
+#
+# Pivot from the initial group modification to the initiating
+# account.
+#
+# Events of interest:
+# 4624 - Successful Logon
+# 4672 - Special Privileges Assigned
+# 4688 - Process Creation
+# 4732 - Group Membership Modification
+#
+# Expected result:
+# 4 events
+#
+# ============================================================
+
+index="privilege" user="itsupport3"
+| table _time signature_id signature logon_type logon_type_name src_ip dest
+| sort _time
+
+
+# ============================================================
+# 03. Source IP Investigation
+# ============================================================
+#
+# Pivot on the source IP associated with the authentication
+# activity to identify related users and systems.
+#
+# Source IP:
+# 10.50.4.22
+#
+# Expected result:
+# 4 events
+#
+# ============================================================
+
+index="privilege" src_ip="10.50.4.22"
+| table _time user signature_id signature dest
+| sort _time
+
+
+# ============================================================
+# 04. Investigate Privileged Account Activity
+# ============================================================
+#
+# The account svc_backup was added to the privileged
+# Domain Admins group.
+#
+# Investigate subsequent authentication and privilege
+# assignment activity performed by this account.
+#
+# Events of interest:
+# 4624 - Successful Logon
+# 4672 - Special Privileges Assigned
+# 4688 - Process Creation
+#
+# Expected result:
+# 3 events
+#
+# ============================================================
+
+index="privilege" user="svc_backup"
+| table _time signature_id signature src_ip dest logon_type_name
+| sort _time
+
+
+# ============================================================
+# 05. Process Creation Investigation
+# ============================================================
+#
+# Investigate the process created by svc_backup.
+#
+# Event ID 4688 records process creation.
+#
+# Investigation focus:
+# - Process name
+# - Parent process
+# - Process path
+#
+# Expected result:
+# 1 event
+#
+# ============================================================
+
+index="privilege" user="svc_backup" signature_id=4688
+| table _time process_name parent_process_name process
+
+
+# ============================================================
+# 06. Investigation Correlation
+# ============================================================
+#
+# Observed activity chain:
+#
+# Source IP: 10.50.4.22
+#       |
+#       v
+# itsupport3
+#       |
+#       v
+# 4624 - Successful Logon
+#       |
+#       v
+# 4672 - Special Privileges Assigned
+#       |
+#       v
+# 4688 - Process Creation
+#       |
+#       v
+# 4732 - Privileged Group Modification
+#       |
+#       v
+# svc_backup added to Domain Admins
+#       |
+#       v
+# svc_backup
+#       |
+#       v
+# 4624 - Successful Logon
+#       |
+#       v
+# 4672 - Special Privileges Assigned
+#       |
+#       v
+# 4688 - Process Creation
+#       |
+#       v
+# ntdsutil.exe on WIN-DC-01
+#
+# ============================================================
+
+
+# ============================================================
+# 07. SOC L1 Investigation Outcome
+# ============================================================
+#
+# Key observations:
+#
+# 1. svc_backup was added to Domain Admins.
+# 2. itsupport3 was associated with the group modification.
+# 3. Source IP 10.50.4.22 was identified during the
+#    authentication investigation.
+# 4. svc_backup subsequently authenticated to WIN-DC-01.
+# 5. Special privileges were assigned to svc_backup.
+# 6. ntdsutil.exe was executed through cmd.exe.
+#
+# Assessment:
+#
+# Potential Privilege Escalation
+#
+# Additional telemetry is required to confirm malicious
+# intent or successful credential extraction.
+#
+# ============================================================
