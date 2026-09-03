@@ -1,0 +1,78 @@
+# ============================================================
+# Windows Privilege Escalation Detection
+# ============================================================
+#
+# SOC L1 Detection | Splunk | Windows Security Event Logs
+#
+# Objective:
+# Detect suspicious additions to security-enabled groups,
+# with a focus on privileged groups such as Domain Admins.
+#
+# Primary Event ID:
+# 4732 - Member Added to Security-Enabled Local Group
+#
+# Detection Focus:
+# - Privileged group membership modification
+# - Account added to Domain Admins
+#
+# ============================================================
+
+
+# ============================================================
+# 01. Privileged Group Membership Detection
+# ============================================================
+#
+# Detect Event ID 4732 events involving the Domain Admins group.
+#
+# ============================================================
+
+index="privilege" signature_id=4732
+| search group_name="Domain Admins"
+| table _time user group_name member_added signature
+| sort _time
+
+
+# ============================================================
+# 02. Detection Summary
+# ============================================================
+#
+# Summarize privileged group modifications by initiating user
+# and affected account.
+#
+# ============================================================
+
+index="privilege" signature_id=4732
+| search group_name="Domain Admins"
+| stats count as group_changes by user group_name member_added
+| sort - group_changes
+
+
+# ============================================================
+# 03. High-Value Privileged Groups
+# ============================================================
+#
+# Detect membership changes involving commonly monitored
+# privileged groups.
+#
+# ============================================================
+
+index="privilege" signature_id=4732
+| search group_name="Domain Admins"
+    OR group_name="Enterprise Admins"
+    OR group_name="Administrators"
+| table _time user group_name member_added signature
+| sort _time
+
+
+# ============================================================
+# Detection Result from Case Dataset
+# ============================================================
+#
+# Observed:
+#
+# Initiating User : itsupport3
+# Account Added   : svc_backup
+# Group           : Domain Admins
+# Events          : 1
+#
+# ============================================================
