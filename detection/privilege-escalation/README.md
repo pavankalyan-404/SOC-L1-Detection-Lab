@@ -2,7 +2,7 @@
 
 The Splunk search identified a privileged group membership modification involving `svc_backup`.
 
-![Privilege Escalation Detection](screenshots/01_detection_4732.png)
+![Privilege Escalation Detection](./screenshots/01_detection_4732.png)
 
 **Figure 1 — Windows Event ID 4732 showing `svc_backup` being added to the Domain Admins group.**
 
