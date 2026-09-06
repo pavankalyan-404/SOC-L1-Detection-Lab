@@ -1,0 +1,4 @@
+index=emailgate earliest=0
+| search spf_result="fail" OR dkim_result="fail" OR dmarc_result="fail"
+| table _time subject sender_email sender_domain reply_to spf_result dkim_result dmarc_result
+| sort _time
