@@ -1,0 +1,16 @@
+# Step 1: Full inbox overview (baseline of normal vs suspicious)
+index=emailgate earliest=0
+| table _time subject sender_email sender_domain reply_to spf_result dkim_result dmarc_result
+| sort _time
+
+# Step 2: Isolate emails with failed authentication
+index=emailgate earliest=0
+| search spf_result="fail" OR dkim_result="fail" OR dmarc_result="fail"
+| table _time subject sender_email sender_domain reply_to spf_result dkim_result dmarc_result
+| sort _time
+
+# Step 3: Check destination URLs and gateway actions for flagged emails
+index=emailgate earliest=0
+| search spf_result="fail" OR dkim_result="fail" OR dmarc_result="fail"
+| table _time subject url sender_email action
+| sort _time
